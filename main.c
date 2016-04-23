@@ -8,15 +8,17 @@
 
 int sock_phone,sock_home;     //socket
 struct sockaddr_in addr_phone,addr_home;  //address
+struct sockaddr_in addr_phone_temp,addr_home_temp;  //address
 
 void *thread_phone_to_home_main()
 {
-    char buf[1024] = {0};
+    unsigned char buf[1024];
     int n;
-    int len = sizeof(addr_phone);
+    int len = sizeof(addr_phone_temp);
     while(1)
     {
-        n = recvfrom(sock_phone, buf, sizeof(buf), 0, (struct sockaddr *)&addr_phone, &len);
+        n = recvfrom(sock_phone, buf, sizeof(buf), 0, (struct sockaddr *)&addr_phone_temp, &len);
+        //printf("%s\n",inet_ntoa(addr_phone.sin_addr.s_addr));
         if (n == -1)
         {
             perror("recvfrom error");
@@ -25,20 +27,20 @@ void *thread_phone_to_home_main()
         {
             printf("1%s\n",buf);
             //printf("1");
-            sendto(sock_home, buf, n, 0, (struct sockaddr *)&addr_home, sizeof(addr_home));
+            sendto(sock_home, buf, n, 0, (struct sockaddr *)&addr_home_temp, sizeof(addr_home_temp));
         }
     }
 }
 
 void *thread_home_to_phone_main()
 {
-    char buf[1024] = {0};
+    unsigned char buf[1024];
     int n;
     int len;
-    len = sizeof(addr_home);
+    len = sizeof(addr_home_temp);
     while(1)
     {
-        n = recvfrom(sock_home, buf, sizeof(buf), 0, (struct sockaddr *)&addr_home, &len);
+        n = recvfrom(sock_home, buf, sizeof(buf), 0, (struct sockaddr *)&addr_home_temp, &len);
         if (n == -1)
         {
             perror("recvfrom error");
@@ -46,7 +48,7 @@ void *thread_home_to_phone_main()
         else if(n > 0)
         {
             printf("2%s\n",buf);
-            sendto(sock_phone, buf, n, 0, (struct sockaddr *)&addr_phone, sizeof(addr_phone));
+            sendto(sock_phone, buf, n, 0, (struct sockaddr *)&addr_phone_temp, sizeof(addr_phone_temp));
         }
     }
 }
