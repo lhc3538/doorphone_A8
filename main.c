@@ -11,57 +11,67 @@ struct sockaddr_in addr_phone,addr_home;  //address
 
 void *thread_phone_to_home_main()
 {
-    char buf[1024];
+    char buf[1024] = {0};
     int n;
-    n = recvfrom(sock_phone, buf, sizeof(buf), 0, (struct sockaddr *)&addr_phone, sizeof(addr_phone));
-    if (n == -1)
+    int len = sizeof(addr_phone);
+    while(1)
     {
-        perror("recvfrom error");
+        n = recvfrom(sock_phone, buf, sizeof(buf), 0, (struct sockaddr *)&addr_phone, &len);
+        if (n == -1)
+        {
+            perror("recvfrom error");
+        }
+        else if(n > 0)
+        {
+            printf("1%s\n",buf);
+            //printf("1");
+            sendto(sock_home, buf, n, 0, (struct sockaddr *)&addr_home, sizeof(addr_home));
+        }
     }
-    else if(n > 0)
-    {
-        sendto(sock_home, buf, n, 0, (struct sockaddr *)&addr_home, sizeof(addr_home));
-    }
-
 }
 
 void *thread_home_to_phone_main()
 {
-    char buf[1024];
+    char buf[1024] = {0};
     int n;
-    n = recvfrom(sock_home, buf, sizeof(buf), 0, (struct sockaddr *)&addr_home, sizeof(addr_home));
-    if (n == -1)
+    int len;
+    len = sizeof(addr_home);
+    while(1)
     {
-        perror("recvfrom error");
+        n = recvfrom(sock_home, buf, sizeof(buf), 0, (struct sockaddr *)&addr_home, &len);
+        if (n == -1)
+        {
+            perror("recvfrom error");
+        }
+        else if(n > 0)
+        {
+            printf("2%s\n",buf);
+            sendto(sock_phone, buf, n, 0, (struct sockaddr *)&addr_phone, sizeof(addr_phone));
+        }
     }
-    else if(n > 0)
-    {
-        sendto(sock_phone, buf, n, 0, (struct sockaddr *)&addr_phone, sizeof(addr_phone));
-    }
-
 }
 
 void initSock()
 {
-    if ((sock_phone = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
+    if ((sock_phone = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
         perror("create sock_phone failed!");
 
     memset(&addr_phone, 0, sizeof(addr_phone));
     addr_phone.sin_family = AF_INET;
     addr_phone.sin_port = htons(8081);
-    addr_phone.sin_addr.s_addr = inet_addr(INADDR_ANY);
+    addr_phone.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (bind(sock_phone, (struct sockaddr *)&addr_phone, sizeof(addr_phone)) < 0)
         perror("bind error");
 
 
-    if ((sock_home = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
+    if ((sock_home = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
         perror("create sock_home failed!");
 
     memset(&addr_home, 0, sizeof(addr_home));
     addr_home.sin_family = AF_INET;
-    addr_home.sin_port = htons(8081);
-    addr_home.sin_addr.s_addr = inet_addr(INADDR_ANY);
+    addr_home.sin_port = htons(8082);
+    addr_home.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (bind(sock_home, (struct sockaddr *)&addr_home, sizeof(addr_home)) < 0)
         perror("bind error");

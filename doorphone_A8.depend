@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1461249312 source:/home/lhc/code/doorphone_A8/main.c
+1461383206 source:/home/lhc/code/doorphone_A8/main.c
 	<sys/types.h>
 	<sys/socket.h>
 	<netinet/in.h>
