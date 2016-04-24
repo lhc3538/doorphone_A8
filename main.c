@@ -5,19 +5,29 @@
 //--------------------------
 #include <pthread.h>
 //#include "public.h"
+#define BUFLEN 1024
+
+typedef struct
+{
+    unsigned long long id; //package's id
+    unsigned char data[BUFLEN];    //audio data
+} Package;
 
 int sock_phone,sock_home;     //socket
 struct sockaddr_in addr_phone,addr_home;  //address
-struct sockaddr_in addr_phone_temp,addr_home_temp;  //address
+struct sockaddr_in addr_phone_temp,addr_home_temp;  //address cache
 
 void *thread_phone_to_home_main()
 {
-    unsigned char buf[1024];
+    Package pack;
+    int pack_len = sizeof(Package);
+    char buf_sock[pack_len];
+
     int n;
     int len = sizeof(addr_phone_temp);
     while(1)
     {
-        n = recvfrom(sock_phone, buf, sizeof(buf), 0, (struct sockaddr *)&addr_phone_temp, &len);
+        n = recvfrom(sock_phone, buf_sock, pack_len, 0, (struct sockaddr *)&addr_phone_temp, &len);
         //printf("%s\n",inet_ntoa(addr_phone.sin_addr.s_addr));
         if (n == -1)
         {
@@ -25,30 +35,36 @@ void *thread_phone_to_home_main()
         }
         else if(n > 0)
         {
-            printf("1%s\n",buf);
+            memcpy(&pack,buf_sock,pack_len);
+            printf("phone to home%llu:%s\n",pack.id,pack.data);
             //printf("1");
-            sendto(sock_home, buf, n, 0, (struct sockaddr *)&addr_home_temp, sizeof(addr_home_temp));
+            sendto(sock_home, buf_sock, pack_len, 0, (struct sockaddr *)&addr_home_temp, sizeof(addr_home_temp));
         }
     }
 }
 
 void *thread_home_to_phone_main()
 {
-    unsigned char buf[1024];
+    Package pack;
+    int pack_len = sizeof(Package);
+    char buf_sock[pack_len];
+
     int n;
     int len;
     len = sizeof(addr_home_temp);
     while(1)
     {
-        n = recvfrom(sock_home, buf, sizeof(buf), 0, (struct sockaddr *)&addr_home_temp, &len);
+        n = recvfrom(sock_home, buf_sock, pack_len, 0, (struct sockaddr *)&addr_home_temp, &len);
         if (n == -1)
         {
             perror("recvfrom error");
         }
         else if(n > 0)
         {
-            printf("2%s\n",buf);
-            sendto(sock_phone, buf, n, 0, (struct sockaddr *)&addr_phone_temp, sizeof(addr_phone_temp));
+            memcpy(&pack,buf_sock,pack_len);
+            printf("home_to_phone%llu:%s\n",pack.id,pack.data);
+            printf("%d %d %d %d %d %d %d %d\n",buf_sock[0],buf_sock[1],buf_sock[2],buf_sock[3],buf_sock[4],buf_sock[5],buf_sock[6],buf_sock[7]);
+            sendto(sock_phone, buf_sock, pack_len, 0, (struct sockaddr *)&addr_phone_temp, sizeof(addr_phone_temp));
         }
     }
 }
