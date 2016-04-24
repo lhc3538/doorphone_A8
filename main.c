@@ -36,7 +36,7 @@ void *thread_phone_to_home_main()
         else if(n > 0)
         {
             memcpy(&pack,buf_sock,pack_len);
-            printf("phone to home%llu:%s\n",pack.id,pack.data);
+            //printf("phone to home%llu:%s\n",pack.id,pack.data);
             //printf("1");
             sendto(sock_home, buf_sock, pack_len, 0, (struct sockaddr *)&addr_home_temp, sizeof(addr_home_temp));
         }
@@ -62,8 +62,8 @@ void *thread_home_to_phone_main()
         else if(n > 0)
         {
             memcpy(&pack,buf_sock,pack_len);
-            printf("home_to_phone%llu:%s\n",pack.id,pack.data);
-            printf("%d %d %d %d %d %d %d %d\n",buf_sock[0],buf_sock[1],buf_sock[2],buf_sock[3],buf_sock[4],buf_sock[5],buf_sock[6],buf_sock[7]);
+            //printf("home_to_phone%llu:%s\n",pack.id,pack.data);
+            //printf("%d %d %d %d %d %d %d %d\n",buf_sock[0],buf_sock[1],buf_sock[2],buf_sock[3],buf_sock[4],buf_sock[5],buf_sock[6],buf_sock[7]);
             sendto(sock_phone, buf_sock, pack_len, 0, (struct sockaddr *)&addr_phone_temp, sizeof(addr_phone_temp));
         }
     }
